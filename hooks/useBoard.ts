@@ -1,9 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import type { BoardState, Card, List } from "@/types";
-
-const STORAGE_KEY = "suswork-board-v1";
 
 const INITIAL_STATE: BoardState = {
   lists: [
@@ -14,33 +12,40 @@ const INITIAL_STATE: BoardState = {
   cards: [],
 };
 
-function loadFromStorage(): BoardState {
-  if (typeof window === "undefined") return INITIAL_STATE;
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return INITIAL_STATE;
-    const parsed = JSON.parse(raw) as BoardState;
-    if (!Array.isArray(parsed.lists) || !Array.isArray(parsed.cards)) {
-      return INITIAL_STATE;
-    }
-    return parsed;
-  } catch {
-    return INITIAL_STATE;
-  }
-}
-
 export function useBoard() {
   const [state, setState] = useState<BoardState>(INITIAL_STATE);
   const [hydrated, setHydrated] = useState(false);
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isFirstLoad = useRef(true);
 
+  // 初回ロード時にAPIからデータを取得
   useEffect(() => {
-    setState(loadFromStorage());
-    setHydrated(true);
+    fetch("/api/board")
+      .then((res) => res.json())
+      .then((data: BoardState) => {
+        setState(data);
+        setHydrated(true);
+      })
+      .catch(() => {
+        setHydrated(true);
+      });
   }, []);
 
+  // 状態が変わったらAPIに保存（デバウンス500ms）
   useEffect(() => {
     if (!hydrated) return;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    if (isFirstLoad.current) {
+      isFirstLoad.current = false;
+      return;
+    }
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => {
+      fetch("/api/board", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(state),
+      });
+    }, 500);
   }, [state, hydrated]);
 
   const addList = useCallback((name: string) => {
@@ -80,7 +85,6 @@ export function useBoard() {
     }));
   }, []);
 
-  // カードを移動・並び替え（リスト間・リスト内どちらも対応）
   const reorderCard = useCallback(
     (cardId: string, toListId: string, targetCardId: string | null, insertAfter: boolean) => {
       setState((prev) => {
