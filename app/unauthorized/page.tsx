@@ -1,5 +1,3 @@
-import { signOut } from "@/auth";
-
 export default function UnauthorizedPage() {
   return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
@@ -14,20 +12,13 @@ export default function UnauthorizedPage() {
           このアプリは @suswork.jp のアカウント専用です。<br />
           別のアカウントでログインしてください。
         </p>
-        <form
-          action={async () => {
-            "use server";
-            await signOut({ redirectTo: "/login" });
-          }}
+        <a
+          href="/api/auth/signout"
+          className="block w-full px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl
+                     hover:bg-blue-700 transition-colors text-center"
         >
-          <button
-            type="submit"
-            className="w-full px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl
-                       hover:bg-blue-700 transition-colors"
-          >
-            別のアカウントでログイン
-          </button>
-        </form>
+          別のアカウントでログイン
+        </a>
       </div>
     </div>
   );
