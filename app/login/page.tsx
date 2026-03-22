@@ -9,7 +9,7 @@ async function handleGoogleLogin() {
   const form = document.createElement("form");
   form.method = "POST";
   form.action = "/api/auth/signin/google";
-  const fields = { csrfToken, callbackUrl: "/", json: "true" };
+  const fields = { csrfToken, callbackUrl: "/" };
   for (const [name, value] of Object.entries(fields)) {
     const input = document.createElement("input");
     input.type = "hidden";
