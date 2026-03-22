@@ -13,20 +13,49 @@ type Props = {
   onAddCard: (listId: string, title: string) => void;
   onAddList: (name: string) => void;
   onDeleteList: (listId: string) => void;
+  onMoveCard: (cardId: string, toListId: string) => void;
 };
 
-export function BoardView({ lists, cards, onCardClick, onAddCard, onAddList, onDeleteList }: Props) {
+export function BoardView({ lists, cards, onCardClick, onAddCard, onAddList, onDeleteList, onMoveCard }: Props) {
   const [addingCardTo, setAddingCardTo] = useState<string | null>(null);
   const [addingList, setAddingList] = useState(false);
+  const [draggingCardId, setDraggingCardId] = useState<string | null>(null);
+  const [dragOverListId, setDragOverListId] = useState<string | null>(null);
+
+  const handleDrop = (listId: string) => {
+    if (draggingCardId) {
+      onMoveCard(draggingCardId, listId);
+    }
+    setDragOverListId(null);
+    setDraggingCardId(null);
+  };
 
   return (
     <div className="flex gap-4 items-start overflow-x-auto pb-6 px-6 pt-5 min-h-[calc(100vh-64px)]">
       {lists.map((list) => {
         const listCards = cards.filter((c) => c.listId === list.id);
+        const isOver = dragOverListId === list.id;
+
         return (
           <div
             key={list.id}
-            className="w-72 flex-shrink-0 bg-slate-100/80 rounded-xl p-3 flex flex-col gap-2"
+            onDragOver={(e) => {
+              e.preventDefault();
+              e.dataTransfer.dropEffect = "move";
+              setDragOverListId(list.id);
+            }}
+            onDragLeave={(e) => {
+              // 子要素へのleaveは無視する
+              if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                setDragOverListId(null);
+              }
+            }}
+            onDrop={() => handleDrop(list.id)}
+            className={`w-72 flex-shrink-0 rounded-xl p-3 flex flex-col gap-2 transition-colors
+              ${isOver
+                ? "bg-blue-100/80 ring-2 ring-blue-300"
+                : "bg-slate-100/80"
+              }`}
           >
             {/* リストヘッダー */}
             <div className="flex items-center justify-between px-1 mb-0.5">
@@ -50,11 +79,26 @@ export function BoardView({ lists, cards, onCardClick, onAddCard, onAddList, onD
             </div>
 
             {/* カード一覧 */}
-            <div className="flex flex-col gap-2">
+            <div className="flex flex-col gap-2 min-h-[8px]">
               {listCards.map((card) => (
-                <KanbanCard key={card.id} card={card} onClick={onCardClick} />
+                <KanbanCard
+                  key={card.id}
+                  card={card}
+                  onClick={onCardClick}
+                  onDragStart={setDraggingCardId}
+                  onDragEnd={() => {
+                    setDraggingCardId(null);
+                    setDragOverListId(null);
+                  }}
+                  isDragging={draggingCardId === card.id}
+                />
               ))}
             </div>
+
+            {/* ドロップヒント */}
+            {isOver && draggingCardId && (
+              <div className="h-10 rounded-lg border-2 border-dashed border-blue-300 bg-blue-50/50" />
+            )}
 
             {/* カード追加 */}
             {addingCardTo === list.id ? (

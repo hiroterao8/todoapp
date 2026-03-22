@@ -5,6 +5,9 @@ import type { Card } from "@/types";
 type Props = {
   card: Card;
   onClick: (card: Card) => void;
+  onDragStart: (cardId: string) => void;
+  onDragEnd: () => void;
+  isDragging: boolean;
 };
 
 function formatDate(dateStr: string): string {
@@ -19,13 +22,23 @@ function isOverdue(dateStr: string): boolean {
   return due < today;
 }
 
-export function KanbanCard({ card, onClick }: Props) {
+export function KanbanCard({ card, onClick, onDragStart, onDragEnd, isDragging }: Props) {
   return (
     <div
+      draggable
+      onDragStart={(e) => {
+        e.dataTransfer.effectAllowed = "move";
+        onDragStart(card.id);
+      }}
+      onDragEnd={onDragEnd}
       onClick={() => onClick(card)}
       onKeyDown={(e) => e.key === "Enter" && onClick(card)}
-      className="bg-white rounded-lg border border-slate-200 px-3 py-2.5 shadow-sm
-                 hover:shadow-md hover:border-slate-300 cursor-pointer transition-all group"
+      className={`bg-white rounded-lg border px-3 py-2.5 shadow-sm transition-all group
+        cursor-grab active:cursor-grabbing select-none
+        ${isDragging
+          ? "opacity-40 scale-95 border-blue-300"
+          : "border-slate-200 hover:shadow-md hover:border-slate-300"
+        }`}
       role="button"
       tabIndex={0}
     >

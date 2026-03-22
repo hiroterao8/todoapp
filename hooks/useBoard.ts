@@ -80,6 +80,15 @@ export function useBoard() {
     }));
   }, []);
 
+  const moveCard = useCallback((cardId: string, toListId: string) => {
+    setState((prev) => ({
+      ...prev,
+      cards: prev.cards.map((c) =>
+        c.id === cardId ? { ...c, listId: toListId } : c
+      ),
+    }));
+  }, []);
+
   return {
     lists: state.lists,
     cards: state.cards,
@@ -89,5 +98,6 @@ export function useBoard() {
     addCard,
     updateCard,
     deleteCard,
+    moveCard,
   };
 }

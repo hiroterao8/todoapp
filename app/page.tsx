@@ -8,7 +8,7 @@ import { TimelineView } from "@/components/TimelineView";
 import { CardModal } from "@/components/CardModal";
 
 export default function Home() {
-  const { lists, cards, hydrated, addList, deleteList, addCard, updateCard, deleteCard } = useBoard();
+  const { lists, cards, hydrated, addList, deleteList, addCard, updateCard, deleteCard, moveCard } = useBoard();
   const [view, setView] = useState<ViewMode>("board");
   const [editingCard, setEditingCard] = useState<Card | null>(null);
 
@@ -71,6 +71,7 @@ export default function Home() {
             onAddCard={addCard}
             onAddList={addList}
             onDeleteList={deleteList}
+            onMoveCard={moveCard}
           />
         ) : (
           <TimelineView
