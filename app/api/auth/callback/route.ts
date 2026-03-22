@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
-  const baseUrl = (process.env.AUTH_URL ?? process.env.NEXTAUTH_URL ?? "https://todoapp-neon-iota.vercel.app").replace(/\/$/, "");
+  const baseUrl = "https://todoapp-neon-iota.vercel.app";
+  const redirectUri = `${baseUrl}/api/auth/callback`;
   const url = new URL(req.url);
   const code = url.searchParams.get("code");
   const state = url.searchParams.get("state");
@@ -19,7 +20,7 @@ export async function GET(req: NextRequest) {
       code,
       client_id: process.env.GOOGLE_CLIENT_ID!,
       client_secret: process.env.GOOGLE_CLIENT_SECRET!,
-      redirect_uri: `${baseUrl}/api/auth/callback`,
+      redirect_uri: redirectUri,
       grant_type: "authorization_code",
     }),
   });

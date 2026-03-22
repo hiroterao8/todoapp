@@ -2,11 +2,11 @@ import { NextResponse } from "next/server";
 
 export async function GET() {
   const state = crypto.randomUUID();
-  const baseUrl = (process.env.AUTH_URL ?? process.env.NEXTAUTH_URL ?? "https://todoapp-neon-iota.vercel.app").replace(/\/$/, "");
+  const redirectUri = "https://todoapp-neon-iota.vercel.app/api/auth/callback";
 
   const params = new URLSearchParams({
     client_id: process.env.GOOGLE_CLIENT_ID!,
-    redirect_uri: `${baseUrl}/api/auth/callback`,
+    redirect_uri: redirectUri,
     response_type: "code",
     scope: "openid email profile",
     access_type: "offline",
