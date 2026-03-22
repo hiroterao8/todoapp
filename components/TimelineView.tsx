@@ -62,7 +62,7 @@ export function TimelineView({ lists, cards, onCardClick }: Props) {
   const unscheduledCards = useMemo(() => cards.filter((c) => !c.dueDate), [cards]);
 
   const getCardsForCell = (listId: string, dateStr: string): Card[] =>
-    cards.filter((c) => c.listId === listId && c.dueDate === dateStr);
+    cards.filter((c) => c.listId === listId && c.dueDate?.startsWith(dateStr));
 
   return (
     <div className="flex flex-col h-[calc(100vh-64px)]">
