@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 export async function GET() {
   const state = crypto.randomUUID();
-  const redirectUri = "https://todoapp-neon-iota.vercel.app/api/auth/callback";
+  const redirectUri = "https://todoapp-neon-iota.vercel.app/api/auth/callback/google";
 
   const params = new URLSearchParams({
     client_id: process.env.GOOGLE_CLIENT_ID!,
