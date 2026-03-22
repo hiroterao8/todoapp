@@ -8,8 +8,8 @@ const geist = Geist({
 });
 
 export const metadata: Metadata = {
-  title: "ToDo アプリ",
-  description: "シンプルなToDoアプリ",
+  title: "プロジェクトボード",
+  description: "KEY MTG・タスク管理ボード",
 };
 
 export default function RootLayout({
@@ -19,7 +19,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ja" className={`${geist.variable} h-full`}>
-      <body className="min-h-full bg-slate-50 font-sans antialiased">
+      <body className="h-full font-sans antialiased">
         {children}
       </body>
     </html>

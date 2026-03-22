@@ -1,168 +1,96 @@
 "use client";
 
-import { useState, useRef } from "react";
-
-type Todo = {
-  id: number;
-  text: string;
-  completed: boolean;
-};
+import { useState } from "react";
+import type { Card, ViewMode } from "@/types";
+import { useBoard } from "@/hooks/useBoard";
+import { BoardView } from "@/components/BoardView";
+import { TimelineView } from "@/components/TimelineView";
+import { CardModal } from "@/components/CardModal";
 
 export default function Home() {
-  const [todos, setTodos] = useState<Todo[]>([]);
-  const [input, setInput] = useState("");
-  const inputRef = useRef<HTMLInputElement>(null);
+  const { lists, cards, hydrated, addList, deleteList, addCard, updateCard, deleteCard } = useBoard();
+  const [view, setView] = useState<ViewMode>("board");
+  const [editingCard, setEditingCard] = useState<Card | null>(null);
 
-  const addTodo = () => {
-    const text = input.trim();
-    if (!text) return;
-    setTodos((prev) => [
-      ...prev,
-      { id: Date.now(), text, completed: false },
-    ]);
-    setInput("");
-    inputRef.current?.focus();
-  };
-
-  const toggleTodo = (id: number) => {
-    setTodos((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t))
+  if (!hydrated) {
+    return (
+      <div className="min-h-screen bg-slate-100 flex items-center justify-center">
+        <div className="text-sm text-slate-400">読み込み中...</div>
+      </div>
     );
-  };
-
-  const deleteTodo = (id: number) => {
-    setTodos((prev) => prev.filter((t) => t.id !== id));
-  };
-
-  const remaining = todos.filter((t) => !t.completed).length;
+  }
 
   return (
-    <main className="min-h-screen flex items-start justify-center pt-16 pb-16 px-4">
-      <div className="w-full max-w-md">
-        {/* ヘッダー */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-slate-800 tracking-tight">
-            やること
-          </h1>
-          {todos.length > 0 && (
-            <p className="mt-1 text-sm text-slate-400">
-              残り{" "}
-              <span className="font-semibold text-slate-500">{remaining}</span>{" "}
-              件
-            </p>
-          )}
-        </div>
+    <div className="min-h-screen bg-slate-100 flex flex-col">
+      {/* ナビゲーション */}
+      <header className="h-16 bg-blue-700 flex items-center px-6 gap-4 shadow-md flex-shrink-0">
+        <h1 className="text-white font-bold text-lg tracking-tight mr-2">
+          プロジェクトボード
+        </h1>
 
-        {/* 入力エリア */}
-        <div className="flex gap-2 mb-6">
-          <input
-            ref={inputRef}
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && !e.nativeEvent.isComposing && addTodo()}
-            placeholder="タスクを入力..."
-            className="flex-1 px-4 py-3 rounded-xl border border-slate-200 bg-white text-slate-800 placeholder:text-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-slate-300 focus:border-transparent transition"
+        {/* ビュー切り替え */}
+        <div className="flex items-center gap-1 bg-blue-800/50 rounded-lg p-1">
+          <button
+            onClick={() => setView("board")}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all
+              ${view === "board"
+                ? "bg-white text-blue-700 shadow-sm"
+                : "text-blue-100 hover:text-white hover:bg-blue-700/50"
+              }`}
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round"
+                d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
+            </svg>
+            ボード
+          </button>
+          <button
+            onClick={() => setView("timeline")}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all
+              ${view === "timeline"
+                ? "bg-white text-blue-700 shadow-sm"
+                : "text-blue-100 hover:text-white hover:bg-blue-700/50"
+              }`}
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round"
+                d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            タイムライン
+          </button>
+        </div>
+      </header>
+
+      {/* メイン */}
+      <main className="flex-1 overflow-hidden">
+        {view === "board" ? (
+          <BoardView
+            lists={lists}
+            cards={cards}
+            onCardClick={setEditingCard}
+            onAddCard={addCard}
+            onAddList={addList}
+            onDeleteList={deleteList}
           />
-          <button
-            onClick={addTodo}
-            disabled={!input.trim()}
-            className="px-5 py-3 rounded-xl bg-slate-800 text-white text-sm font-medium hover:bg-slate-700 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-          >
-            追加
-          </button>
-        </div>
-
-        {/* タスクリスト */}
-        {todos.length === 0 ? (
-          <div className="text-center py-16 text-slate-300">
-            <div className="text-4xl mb-3">✓</div>
-            <p className="text-sm">タスクがありません</p>
-          </div>
         ) : (
-          <ul className="space-y-2">
-            {todos.map((todo) => (
-              <li
-                key={todo.id}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl bg-white border transition-all ${
-                  todo.completed
-                    ? "border-slate-100 opacity-50"
-                    : "border-slate-200 shadow-sm"
-                }`}
-              >
-                {/* チェックボックス */}
-                <button
-                  onClick={() => toggleTodo(todo.id)}
-                  className={`flex-shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${
-                    todo.completed
-                      ? "bg-emerald-400 border-emerald-400"
-                      : "border-slate-300 hover:border-emerald-400"
-                  }`}
-                  aria-label={todo.completed ? "未完了に戻す" : "完了にする"}
-                >
-                  {todo.completed && (
-                    <svg
-                      className="w-3 h-3 text-white"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      strokeWidth={3}
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
-                  )}
-                </button>
-
-                {/* テキスト */}
-                <span
-                  className={`flex-1 text-sm leading-relaxed ${
-                    todo.completed
-                      ? "line-through text-slate-400"
-                      : "text-slate-700"
-                  }`}
-                >
-                  {todo.text}
-                </span>
-
-                {/* 削除ボタン */}
-                <button
-                  onClick={() => deleteTodo(todo.id)}
-                  className="flex-shrink-0 w-6 h-6 flex items-center justify-center rounded-lg text-slate-300 hover:text-rose-400 hover:bg-rose-50 transition-all"
-                  aria-label="削除"
-                >
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth={2}
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                </button>
-              </li>
-            ))}
-          </ul>
+          <TimelineView
+            lists={lists}
+            cards={cards}
+            onCardClick={setEditingCard}
+          />
         )}
+      </main>
 
-        {/* 完了タスクを一括削除 */}
-        {todos.some((t) => t.completed) && (
-          <button
-            onClick={() => setTodos((prev) => prev.filter((t) => !t.completed))}
-            className="mt-4 w-full py-2 text-xs text-slate-400 hover:text-rose-400 transition-colors"
-          >
-            完了済みをすべて削除
-          </button>
-        )}
-      </div>
-    </main>
+      {/* カード編集モーダル */}
+      {editingCard && (
+        <CardModal
+          card={editingCard}
+          lists={lists}
+          onSave={updateCard}
+          onDelete={deleteCard}
+          onClose={() => setEditingCard(null)}
+        />
+      )}
+    </div>
   );
 }
