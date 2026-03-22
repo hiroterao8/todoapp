@@ -1,7 +1,3 @@
-"use client";
-
-import { signOut } from "next-auth/react";
-
 export default function UnauthorizedPage() {
   return (
     <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
@@ -16,13 +12,13 @@ export default function UnauthorizedPage() {
           このアプリは @suswork.jp のアカウント専用です。<br />
           別のアカウントでログインしてください。
         </p>
-        <button
-          onClick={() => signOut({ callbackUrl: "/login" })}
-          className="w-full px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl
-                     hover:bg-blue-700 transition-colors"
+        <a
+          href="/api/auth/signout?callbackUrl=%2Flogin"
+          className="block w-full px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-xl
+                     hover:bg-blue-700 transition-colors text-center"
         >
           別のアカウントでログイン
-        </button>
+        </a>
       </div>
     </div>
   );
