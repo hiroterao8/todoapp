@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
-  const baseUrl = process.env.AUTH_URL ?? process.env.NEXTAUTH_URL ?? "https://todoapp-neon-iota.vercel.app";
+  const baseUrl = (process.env.AUTH_URL ?? process.env.NEXTAUTH_URL ?? "https://todoapp-neon-iota.vercel.app").replace(/\/$/, "");
   const url = new URL(req.url);
   const code = url.searchParams.get("code");
   const state = url.searchParams.get("state");

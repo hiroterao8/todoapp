@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 export async function GET() {
   const state = crypto.randomUUID();
-  const baseUrl = process.env.AUTH_URL ?? process.env.NEXTAUTH_URL ?? "https://todoapp-neon-iota.vercel.app";
+  const baseUrl = (process.env.AUTH_URL ?? process.env.NEXTAUTH_URL ?? "https://todoapp-neon-iota.vercel.app").replace(/\/$/, "");
 
   const params = new URLSearchParams({
     client_id: process.env.GOOGLE_CLIENT_ID!,
