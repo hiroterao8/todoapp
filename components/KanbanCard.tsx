@@ -7,22 +7,31 @@ type Props = {
   onClick: (card: Card) => void;
   onDragStart: (cardId: string) => void;
   onDragEnd: () => void;
+  onDragOver: (e: React.DragEvent, position: "above" | "below") => void;
   isDragging: boolean;
 };
 
 function formatDate(dateStr: string): string {
-  const d = new Date(dateStr + "T00:00:00");
-  return `${d.getMonth() + 1}/${d.getDate()}`;
+  // datetime-local format: "YYYY-MM-DDTHH:MM" or date-only "YYYY-MM-DD"
+  const hasTime = dateStr.includes("T");
+  const d = new Date(hasTime ? dateStr : dateStr + "T00:00:00");
+  const month = d.getMonth() + 1;
+  const day = d.getDate();
+  if (hasTime) {
+    const h = String(d.getHours()).padStart(2, "0");
+    const m = String(d.getMinutes()).padStart(2, "0");
+    return `${month}/${day} ${h}:${m}`;
+  }
+  return `${month}/${day}`;
 }
 
 function isOverdue(dateStr: string): boolean {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const due = new Date(dateStr + "T00:00:00");
-  return due < today;
+  const hasTime = dateStr.includes("T");
+  const due = new Date(hasTime ? dateStr : dateStr + "T23:59:59");
+  return due < new Date();
 }
 
-export function KanbanCard({ card, onClick, onDragStart, onDragEnd, isDragging }: Props) {
+export function KanbanCard({ card, onClick, onDragStart, onDragEnd, onDragOver, isDragging }: Props) {
   return (
     <div
       draggable
@@ -31,6 +40,13 @@ export function KanbanCard({ card, onClick, onDragStart, onDragEnd, isDragging }
         onDragStart(card.id);
       }}
       onDragEnd={onDragEnd}
+      onDragOver={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const rect = e.currentTarget.getBoundingClientRect();
+        const position = e.clientY < rect.top + rect.height / 2 ? "above" : "below";
+        onDragOver(e, position);
+      }}
       onClick={() => onClick(card)}
       onKeyDown={(e) => e.key === "Enter" && onClick(card)}
       className={`bg-white rounded-lg border px-3 py-2.5 shadow-sm transition-all group

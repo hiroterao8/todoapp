@@ -80,14 +80,33 @@ export function useBoard() {
     }));
   }, []);
 
-  const moveCard = useCallback((cardId: string, toListId: string) => {
-    setState((prev) => ({
-      ...prev,
-      cards: prev.cards.map((c) =>
-        c.id === cardId ? { ...c, listId: toListId } : c
-      ),
-    }));
-  }, []);
+  // カードを移動・並び替え（リスト間・リスト内どちらも対応）
+  const reorderCard = useCallback(
+    (cardId: string, toListId: string, targetCardId: string | null, insertAfter: boolean) => {
+      setState((prev) => {
+        const cards = [...prev.cards];
+        const draggedIndex = cards.findIndex((c) => c.id === cardId);
+        if (draggedIndex === -1) return prev;
+
+        const draggedCard = { ...cards[draggedIndex], listId: toListId };
+        cards.splice(draggedIndex, 1);
+
+        if (targetCardId) {
+          const targetIndex = cards.findIndex((c) => c.id === targetCardId);
+          if (targetIndex !== -1) {
+            cards.splice(insertAfter ? targetIndex + 1 : targetIndex, 0, draggedCard);
+          } else {
+            cards.push(draggedCard);
+          }
+        } else {
+          cards.push(draggedCard);
+        }
+
+        return { ...prev, cards };
+      });
+    },
+    []
+  );
 
   return {
     lists: state.lists,
@@ -98,6 +117,6 @@ export function useBoard() {
     addCard,
     updateCard,
     deleteCard,
-    moveCard,
+    reorderCard,
   };
 }

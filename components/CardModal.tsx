@@ -94,13 +94,13 @@ export function CardModal({ card, lists, onSave, onDelete, onClose }: Props) {
             />
           </div>
 
-          {/* 期限日 */}
+          {/* 期限日時 */}
           <div>
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
-              期限日
+              期限日時
             </label>
             <input
-              type="date"
+              type="datetime-local"
               value={dueDate}
               onChange={(e) => setDueDate(e.target.value)}
               className="w-full px-3 py-2.5 text-sm text-slate-700 bg-slate-50 border border-slate-200
@@ -112,7 +112,7 @@ export function CardModal({ card, lists, onSave, onDelete, onClose }: Props) {
                 onClick={() => setDueDate("")}
                 className="mt-1 text-xs text-slate-400 hover:text-rose-400 transition-colors"
               >
-                期限日を削除
+                期限日時を削除
               </button>
             )}
           </div>
